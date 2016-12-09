@@ -1,0 +1,31 @@
+apply plugin : 'java'
+apply plugin : 'eclipse'
+
+version = '1.0'
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+  compile 'org.slf4j:slf4j-api:1.7.7'
+  compile 'org.slf4j:slf4j-simple:1.7.7'
+    compile group: 'junit', name: 'junit', version: '4.11'
+  compile group: 'com.google.guava', name: 'guava', version: '19.0'
+}
+
+
+//create a single Jar with all dependencies
+task fatJar(type: Jar) {
+     manifest {
+     	      attributes 'Implementation-Title': 'Gradle Jar File Example',
+	             	'Implementation-Version': version,
+       		  'Main-Class': 'com.mkyong.DateUtils'
+	      }
+      baseName = project.name + '-all'
+      from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+      with jar
+ }
