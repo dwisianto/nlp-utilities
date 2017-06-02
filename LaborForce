@@ -1,0 +1,44 @@
+package d.bag;
+
+
+public class LaborForce {
+
+  private String state;
+  private String gender;
+  private int year;
+
+  public LaborForce(){
+
+  }
+
+  public LaborForce(String state, String gender, int year) {
+    this.state = state;
+    this.gender = gender;
+    this.year = year;
+  }
+
+  public String getState() {
+    return state;
+  }
+
+  public void setState(String state) {
+    this.state = state;
+  }
+
+  public String getGender() {
+    return gender;
+  }
+
+  public void setGender(String gender) {
+    this.gender = gender;
+  }
+
+  public int getYear()  {
+    return year;
+  }
+
+  public void setYear(int year) {
+    this.year = year;
+  }
+
+}
