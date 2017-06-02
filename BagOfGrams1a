@@ -1,0 +1,270 @@
+
+
+//package com.blogspot.apachecommonstipsandtricks.bags;
+package d.bag;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+
+import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.collections.Bag;
+import org.apache.commons.collections.ComparatorUtils;
+import org.apache.commons.collections.FunctorException;
+import org.apache.commons.collections.Transformer;
+import org.apache.commons.collections.bag.HashBag;
+import org.apache.commons.collections.bag.TransformedBag;
+import org.apache.commons.collections.comparators.NullComparator;
+import org.apache.commons.collections.keyvalue.MultiKey;
+//import com.blogspot.apachecommonstipsandtricks.*;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Logger;
+
+// public class MagicBagOfTricks
+public class BagOfGrams1a {
+
+	//
+	private static final Logger logger = Logger.getLogger( BagOfGrams1a.class.getName());
+
+	// []
+	static String m_sFileIn = "bagOfTricks1a.txt";
+	//static String m_sFileIn = "src/main/resources/bagOfTricks1a.txt";
+	//
+	static BagOfGrams1a bot = new BagOfGrams1a();
+
+	//
+	List<LaborForce> aList = new ArrayList<LaborForce>();
+
+
+	/**
+	 *
+	 * @param args
+	 * @throws Exception
+	 */
+	public static void main(String[] args) throws Exception {
+
+		// [] logging configuration
+		BasicConfigurator.configure();
+
+		bot.readData();
+		bot.getBeanProperties();
+		bot.getDecoration();
+
+	}
+
+
+	public void readData() throws Exception {
+
+		ClassLoader classLoader = getClass().getClassLoader();
+		File aFile = new File(classLoader.getResource(m_sFileIn).getFile());
+	    BufferedReader brIn = new BufferedReader(new FileReader(aFile));
+
+	    String str = "";
+	    if (((str = brIn.readLine()) != null)) {
+
+	      do {
+
+	        String[] strings = str.split("\t");
+	        strings = StringUtils.stripAll(strings);
+
+	        String sState = StringUtils.trim(strings[0]);
+	        String sGender = StringUtils.trim(strings[1]);
+	        int iYear = Integer.valueOf(StringUtils.trim(strings[2]));
+
+
+	        //State state = State.valueOf(StringUtils.trim(strings[0]));
+	        //Gender gender = "Male".equals(StringUtils.trim(strings[1])) ? Gender.Male : Gender.Female;
+	        //Integer year = Integer.valueOf(StringUtils.trim(strings[2]));
+
+	        aList.add(new LaborForce( sState, sGender, iYear));
+	      } while ((str = brIn.readLine()) != null);
+
+	    }
+	    brIn.close();
+
+	}
+
+	public void getBeanProperties() throws Exception {
+
+	    Map map = PropertyUtils.describe(new LaborForce());
+	    Set s = map.keySet();
+	    s.remove("class");
+	    System.out.println("All the possible properties on the LaborForce bean are [" + StringUtils.join(s.toArray(),",") + "]");
+
+	}
+
+
+	public void getDecoration() throws Exception {
+
+	    Bag masterBag = new HashBag();
+	    Bag genderBag = TransformedBag.decorate(masterBag, new PropertiesMultiKeyTransformer( new String[]{ "gender" } ) );
+	    Bag genderYearBag = TransformedBag.decorate(masterBag, new PropertiesMultiKeyTransformer( new String[]{ "gender", "year" } ) );
+	    Bag genderYearStateBag = TransformedBag.decorate(masterBag, new PropertiesMultiKeyTransformer( new String[]{ "gender", "year" , "state" } ) );
+
+
+	    genderBag.addAll( aList );
+	    genderYearBag.addAll( aList );
+	    genderYearStateBag.addAll( aList );
+
+
+
+	    Comparator comparator = ComparatorUtils.chainedComparator(new Comparator[]{new MultiKeyCompartor(0),new MultiKeyCompartor(1),new MultiKeyCompartor(2)});
+	    Set<MultiKey> set = new TreeSet<MultiKey>(comparator);
+	    set.addAll(genderBag.uniqueSet());
+	    for (MultiKey multiKey : set) {
+
+	      System.out.println( "[" +StringUtils.join(multiKey.getKeys(),',') + "] = " + masterBag.getCount(multiKey));
+	    }
+
+
+	}
+
+	public void getDecorationAll() throws Exception {
+
+	    Bag masterBag = new HashBag();
+	    Bag genderBag = TransformedBag.decorate(masterBag, new PropertiesMultiKeyTransformer( new String[]{ "gender" } ) );
+	    Bag genderYearBag = TransformedBag.decorate(masterBag, new PropertiesMultiKeyTransformer( new String[]{ "gender", "year" } ) );
+	    Bag genderYearStateBag = TransformedBag.decorate(masterBag, new PropertiesMultiKeyTransformer( new String[]{ "gender", "year" , "state" } ) );
+
+	    genderBag.addAll( aList );
+	    genderYearBag.addAll( aList );
+	    genderYearStateBag.addAll( aList );
+
+	    Comparator comparator = ComparatorUtils.chainedComparator(new Comparator[]{new MultiKeyCompartor(0),new MultiKeyCompartor(1),new MultiKeyCompartor(2)});
+	    Set<MultiKey> set = new TreeSet<MultiKey>(comparator);
+	    set.addAll(masterBag.uniqueSet());
+	    for (MultiKey multiKey : set) {
+
+	      System.out.println( "[" +StringUtils.join(multiKey.getKeys(),',') + "] = " + masterBag.getCount(multiKey));
+	    }
+
+	}
+
+
+
+	/*
+  public static void main(String[] args) throws IOException, InvocationTargetException, NoSuchMethodException, IllegalAccessException
+  {
+    List<LaborForce> list = new ArrayList<LaborForce>();
+    URL url = new URL("http", "1796193846474123283-a-1802744773732722657-s-sites.googlegroups.com", 80, "/site/psenger/Home/data.txt");
+    BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
+    String str;
+    if (((str = in.readLine()) != null))
+    {
+      do
+      {
+        String[] strings = str.split("\t");
+        strings = StringUtils.stripAll(strings);
+
+        State state = State.valueOf(StringUtils.trim(strings[0]));
+        Gender gender = "Male".equals(StringUtils.trim(strings[1])) ? Gender.Male : Gender.Female;
+        Integer year = Integer.valueOf(StringUtils.trim(strings[2]));
+
+        list.add(new LaborForce(state, gender, year));
+      } while ((str = in.readLine()) != null);
+    }
+    in.close();
+
+    Map map = PropertyUtils.describe(new LaborForce());
+    Set s = map.keySet();
+    s.remove("class");
+    System.out.println("All the possible properties on the LaborForce bean are [" + StringUtils.join(s.toArray(),",") + "]");
+
+    Bag masterBag = new HashBag();
+    Bag genderBag = TransformedBag.decorate(masterBag, new PropertiesMultiKeyTransformer( new String[]{ "gender" } ) );
+    Bag genderYearBag = TransformedBag.decorate(masterBag, new PropertiesMultiKeyTransformer( new String[]{ "gender", "year" } ) );
+    Bag genderYearStateBag = TransformedBag.decorate(masterBag, new PropertiesMultiKeyTransformer( new String[]{ "gender", "year" , "state" } ) );
+
+    genderBag.addAll( list );
+    genderYearBag.addAll( list );
+    genderYearStateBag.addAll( list );
+
+    Comparator comparator = ComparatorUtils.chainedComparator(new Comparator[]{new MultiKeyCompartor(0),new MultiKeyCompartor(1),new MultiKeyCompartor(2)});
+    Set<MultiKey> set = new TreeSet<MultiKey>(comparator);
+    set.addAll(masterBag.uniqueSet());
+    for (MultiKey multiKey : set)
+    {
+      System.out.println( "[" +StringUtils.join(multiKey.getKeys(),',') + "] = " + masterBag.getCount(multiKey));
+    }
+  }
+  */
+
+  private static class PropertiesMultiKeyTransformer implements Transformer {
+
+    String[] methodNames;
+    private PropertiesMultiKeyTransformer(String[] methodNames) {
+      this.methodNames = methodNames;
+    }
+
+    public Object transform(Object o) {
+      List<Object> ooos = new ArrayList<Object>();
+      for (String methodName : methodNames) {
+
+        try {
+          ooos.add(PropertyUtils.getProperty(o, methodName));
+        } catch (Exception e) {
+          throw new FunctorException(e);
+        }
+      }
+      return new MultiKey(ooos.toArray(new Object[ooos.size()]));
+    }
+
+  }
+
+  private static class MultiKeyCompartor implements Comparator<MultiKey> {
+
+    private int i;
+
+    private MultiKeyCompartor(int i) {
+      this.i = i;
+    }
+
+    public int compare(MultiKey o1, MultiKey o2) {
+
+      Object[] keys1 = o1.getKeys();
+      Object[] keys2 = o2.getKeys();
+      Object oo1 = null;
+      try {
+        oo1 = keys1[i];
+      } catch (ArrayIndexOutOfBoundsException e) {}
+
+      Object oo2 = null;
+      try {
+        oo2 = keys2[i];
+      } catch (ArrayIndexOutOfBoundsException e) {}
+
+      NullComparator nullComparator = new NullComparator(false);
+
+      return nullComparator.compare(oo1, oo2);
+    }
+
+  }
+
+  /*
+  class LaborForce {
+	  private String state;
+	  private String gender;
+	  private Integer year;
+
+	  public LaborForce() {
+		  state  = "";
+		  gender = "";
+		  year   = new Integer(0);
+	  }
+
+	  public LaborForce(String sState, String sGender, Integer iYear ) {
+		  state = sState;
+		  gender  = sGender;
+		  year  = iYear;
+	  }
+  }
+  */
+
+}
